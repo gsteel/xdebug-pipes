@@ -1,0 +1,48 @@
+name: Test Pipes with Xdebug
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  deployments: none
+  issues: read
+  packages: none
+  pull-requests: read
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  build:
+    name: ${{ matrix.operating-system }} (${{ matrix.coverage }})
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [ubuntu-latest, windows-latest, macOS-latest]
+        php-version: ['8.5']
+        coverage: ['xdebug', 'none']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: ${{ matrix.coverage }}
+          tools: none
+        env:
+          update: true
+      - name: PHP Version
+        run: php -v
+      - name: Xdebug Info
+        continue-on-error: true
+        run: php --ri xdebug
+      - name: Test
+        run: php pipe.php
+        env:
+          USE_ZEND_ALLOC: 0
+          ZEND_DONT_UNLOAD_MODULES: 1
